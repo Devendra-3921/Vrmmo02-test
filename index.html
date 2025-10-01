@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>VRMMO Hub — Ultimate Web</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<style>
+  /* ===== Reset & base ===== */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%;font-family:"Share Tech Mono",monospace;background:#0d0d0d;color:#e9f8ff;transition:background .28s,color .28s; -webkit-font-smoothing:antialiased}
+  body.day{background:#f6f7fb;color:#0b1220}
+
+  /* Layout */
+  .container{max-width:1200px;margin:0 auto;padding:18px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border-radius:12px;backdrop-filter:blur(6px);background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.008));border:1px solid rgba(255,255,255,0.04)}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,#00f5ff,#7a5cff);display:grid;place-items:center;font-weight:900;color:#06142a;font-family:'Orbitron',sans-serif}
+  header nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  header nav button, header nav a{padding:10px 12px;border-radius:8px;border:0;background:transparent;color:inherit;cursor:pointer;font-weight:700}
+  .cta{background:linear-gradient(90deg,#ff4bd1,#7a5cff,#42f5ff);color:#07121a;padding:10px 14px;border-radius:10px;font-weight:900;box-shadow:0 10px 40px rgba(122,92,255,0.12)}
+  .small{font-size:13px;opacity:0.9}
+
+  /* Hero images */
+  .hero{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;padding:18px 0}
+  .hero img{width:180px;height:110px;border-radius:10px;object-fit:cover;border:1px solid rgba(255,255,255,0.04)}
+
+  /* Sections */
+  section{padding:28px 12px;margin-top:12px;background:linear-gradient(180deg,rgba(255,255,255,0.01),transparent);border-radius:12px;border:1px solid rgba(255,255,255,0.03)}
+  h2{font-family:'Orbitron',sans-serif;margin-bottom:10px;color:transparent;background:linear-gradient(90deg,#fff,#aef6ff,#b57cff);-webkit-background-clip:text}
+  p.lead{color:rgba(233,248,255,0.8);margin-bottom:12px}
+
+  /* Chat */
+  #chatBox{max-width:720px;height:240px;overflow:auto;background:rgba(255,255,255,0.02);padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.03)}
+  .chat-line{margin-bottom:8px;font-size:14px}
+  .chat-line b{color:#fff}
+
+  /* Guilds */
+  .guilds{max-width:720px}
+  .guilds input{width:60%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+  .guilds button{padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.04);cursor:pointer;color:inherit}
+
+  /* Leaderboard */
+  #leaderboardList{list-style:none;padding-left:12px}
+  #leaderboardList li{padding:8px 0;border-bottom:1px dashed rgba(255,255,255,0.02);display:flex;justify-content:space-between}
+
+  /* Games grid */
+  .games{display:flex;gap:12px;flex-wrap:wrap}
+  .game-card{width:220px;background:rgba(255,255,255,0.02);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);display:flex;flex-direction:column;gap:8px}
+  .game-card button{margin-top:auto;padding:10px;border-radius:8px;background:linear-gradient(90deg,#42f5ff,#7a5cff);border:0;color:#03121a;font-weight:800;cursor:pointer}
+
+  /* Game overlay / canvas */
+  #gameOverlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(2,6,12,0.85);z-index:1200}
+  #gameContainer{width:min(900px,95%);max-width:900px;height:min(640px,90vh);background:#05121a;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;align-items:center}
+  #gameCanvas{width:100%;height:100%;background:#071622;border-radius:8px;border:2px solid rgba(255,255,255,0.04);touch-action:none}
+  #closeGame{position:absolute;top:18px;right:20px;background:transparent;border:0;color:#42f5ff;font-size:28px;cursor:pointer}
+
+  /* Mobile controller */
+  .controller{position:fixed;left:0;right:0;bottom:12px;display:flex;justify-content:center;gap:18px;pointer-events:none;z-index:1300}
+  .controller .pad,.controller .btn{pointer-events:auto;background:rgba(0,0,0,0.45);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.03);display:grid;place-items:center;color:#0ff}
+  .pad{width:120px;height:120px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:6px}
+  .pad div{width:36px;height:36px;border-radius:6px;background:transparent}
+  .actionBtn{width:64px;height:64px;border-radius:32px;font-weight:900}
+
+  /* Particle control */
+  #particleColor{padding:8px;border-radius:8px;border:0;outline:none}
+
+  /* Cursor trail */
+  .cursorTrail{position:fixed;width:10px;height:10px;border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:screen;opacity:0.95}
+
+  /* Achievements */
+  .achievements{display:flex;gap:10px;flex-wrap:wrap}
+  .achievement{padding:12px;border-radius:8px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);opacity:0.55}
+  .achievement.unlocked{box-shadow:0 8px 30px rgba(66,245,255,0.08);opacity:1}
+
+  /* Notification */
+  .notification{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#42f5ff;color:#03121a;padding:10px 18px;border-radius:999px;font-weight:800;z-index:1500;display:none}
+
+  /* Responsive */
+  @media (max-width:900px){
+    header{flex-direction:column;align-items:flex-start;gap:8px}
+    .games{justify-content:center}
+    .hero img{width:140px;height:90px}
+    #gameContainer{height:70vh}
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Notification -->
+    <div class="notification" id="notification">Welcome to VRMMO Hub — AAAA Web</div>
+
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="logo" id="logoPlaceholder" title="Logo placeholder">VR</div>
+        <div>
+          <div style="font-weight:800">VRMMO Hub</div>
+          <div class="small">Prototype • Ultimate Web • AAAA</div>
+        </div>
+      </div>
+
+      <nav>
+        <button id="toggleTheme">Night / Day</button>
+        <button onclick="scrollTo('about')">About</button>
+        <button onclick="scrollTo('games')">Games</button>
+        <button onclick="scrollTo('guilds')">Guilds</button>
+        <button onclick="scrollTo('community')">Community</button>
+        <button onclick="scrollTo('roadmap')">Roadmap</button>
+        <input id="particleColor" type="color" title="Particle color" value="#00ffff">
+      </nav>
+    </header>
+
+    <!-- Hero images -->
+    <div class="hero" aria-hidden="false">
+      <img src="https://via.placeholder.com/600x400?text=World+1" alt="World 1">
+      <img src="https://via.placeholder.com/600x400?text=World+2" alt="World 2">
+      <img src="https://via.placeholder.com/600x400?text=World+3" alt="World 3">
+      <img src="https://via.placeholder.com/600x400?text=World+4" alt="World 4">
+      <img src="https://via.placeholder.com/600x400?text=World+5" alt="World 5">
+    </div>
+
+    <!-- About -->
+    <section id="about" aria-labelledby="about-title">
+      <h2 id="about-title">About VRMMO</h2>
+      <p class="lead">VRMMO Hub is a next-gen prototype showcasing immersive worlds, social systems, and playable mini-experiences — built to communicate how a full VRMMO product can be designed, tested and scaled.</p>
+      <p><strong>Why VRMMO matters:</strong> VRMMOs combine presence, social interaction and economies. They enable remote human connection in shared virtual spaces, create new creative economies, and push research in UX, safety, and real-time distributed systems.</p>
+      <p style="font-size:13px;color:rgba(233,248,255,0.7)">This prototype is client-only and safe to run locally. Replace placeholder assets with your production assets for deployment.</p>
+    </section>
+
+    <!-- Games -->
+    <section id="games" aria-labelledby="games-title">
+      <h2 id="games-title">Playable Mini-Games</h2>
+      <p class="small">Each game supports keyboard on desktop and touch controls on mobile. Use the controller (bottom) on phones.</p>
+
+      <div class="games" role="list">
+        <div class="game-card" role="listitem">
+          <div style="font-weight:800">Asteroid Shooter</div>
+          <div style="font-size:13px;color:rgba(233,248,255,0.75)">Move left/right and shoot asteroids. Touch left/right to move, action button to shoot.</div>
+          <button onclick="startGame(1)">Play</button>
+        </div>
+
+        <div class="game-card" role="listitem">
+          <div style="font-weight:800">Memory Challenge</div>
+          <div style="font-size:13px;color:rgba(233,248,255,0.75)">Remember the color sequence — input using keys 1-4 or tap screen quadrants.</div>
+          <button onclick="startGame(2)">Play</button>
+        </div>
+
+        <div class="game-card" role="listitem">
+          <div style="font-weight:800">Snake VR</div>
+          <div style="font-size:13px;color:rgba(233,248,255,0.75)">Classic snake. Arrow keys / swipe to control.</div>
+          <button onclick="startGame(3)">Play</button>
+        </div>
+
+        <div class="game-card" role="listitem">
+          <div style="font-weight:800">Reaction Test</div>
+          <div style="font-size:13px;color:rgba(233,248,255,0.75)">Wait for the signal, then tap/press as quickly as you can.</div>
+          <button onclick="startGame(4)">Play</button>
+        </div>
+
+        <div class="game-card" role="listitem">
+          <div style="font-weight:800">Playable Room (Square)</div>
+          <div style="font-size:13px;color:rgba(233,248,255,0.75)">Move a square around a small room, collect dots. Arrow keys / swipe / controller supported.</div>
+          <button onclick="startGame(5)">Play</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Community Chat -->
+    <section id="community" aria-labelledby="community-title">
+      <h2 id="community-title">Community Chat (local demo)</h2>
+      <div id="chatBox" aria-live="polite"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
+        <input id="chatInput" placeholder="Write a message..." aria-label="Chat message" style="flex:1;padding:10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);color:inherit">
+        <button id="chatSend" class="cta">Send</button>
+      </div>
+      <div style="margin-top:8px;font-size:13px;color:rgba(233,248,255,0.7)">Note: This chat is client-only (localStorage). For a real community chat use a WebSocket server + database.</div>
+    </section>
+
+    <!-- Leaderboard -->
+    <section id="leaderboard" aria-labelledby="leaderboard-title">
+      <h2 id="leaderboard-title">Leaderboard (local)</h2>
+      <ul id="leaderboardList"></ul>
+    </section>
+
+    <!-- Guilds -->
+    <section id="guilds" aria-labelledby="guilds-title">
+      <h2 id="guilds-title">Guilds</h2>
+      <div class="guilds">
+        <input id="guildName" placeholder="Guild Name" aria-label="Guild name">
+        <button onclick="createGuild()">Create & Join</button>
+        <div id="guildList" style="margin-top:12px"></div>
+      </div>
+      <p style="font-size:13px;color:rgba(233,248,255,0.7);margin-top:10px">Guilds are stored locally here for the prototype. For multi-user guilds, integrate with a backend and authentication.</p>
+    </section>
+
+    <!-- Achievements -->
+    <section id="achievements" aria-labelledby="achievements-title">
+      <h2 id="achievements-title">Achievements</h2>
+      <div class="achievements">
+        <div class="achievement" id="ach-login">First Visit</div>
+        <div class="achievement" id="ach-win">Win a Game</div>
+        <div class="achievement" id="ach-guild">Join/Create a Guild</div>
+        <div class="achievement" id="ach-top">Top Score</div>
+      </div>
+    </section>
+
+    <!-- Roadmap -->
+    <section id="roadmap" aria-labelledby="roadmap-title">
+      <h2 id="roadmap-title">Roadmap & Impact</h2>
+      <p class="lead">Planned: persistent accounts, avatars, voice proximity, moderation pipelines, economy & marketplace, cross-platform saves, full VR client, edge rendering. We prioritize safety, privacy-by-design, and human moderation for live environments.</p>
+    </section>
+
+    <footer style="margin-top:12px;text-align:center">© 2025 VRMMO Hub — Ultimate Web. Built with care.</footer>
+  </div>
+
+  <!-- Particle canvas (full-screen behind UI) -->
+  <canvas id="particles" aria-hidden="true" style="position:fixed;inset:0;z-index:-1"></canvas>
+
+  <!-- Game overlay + controller -->
+  <div id="gameOverlay" role="dialog" aria-modal="true" aria-hidden="true">
+    <button id="closeGame" aria-label="Close game">✕</button>
+    <div id="gameContainer">
+      <canvas id="gameCanvas" width="960" height="560"></canvas>
+      <div style="display:flex;gap:8px;width:100%;justify-content:space-between">
+        <div style="color:#9ef6d8;font-weight:800">Game: <span id="gameTitle">—</span></div>
+        <div style="color:rgba(233,248,255,0.8)">Score: <span id="gameScore">0</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile controller -->
+  <div class="controller" id="mobileController" aria-hidden="true" style="display:none">
+    <div class="pad" id="dpad">
+      <div></div><div id="upBtn" title="Up">▲</div><div></div>
+      <div id="leftBtn" title="Left">◄</div><div></div><div id="rightBtn" title="Right">►</div>
+      <div></div><div id="downBtn" title="Down">▼</div><div></div>
+    </div>
+    <div class="btn actionBtn" id="actionBtn" title="Action">A</div>
+  </div>
+
+<script>
+/* ============================
+   Utilities & helpers
+   ============================ */
+
+function $(sel){return document.querySelector(sel)}
+function showNotification(text, time=2000){
+  const n = $('#notification');
+  n.innerText = text;
+  n.style.display = 'block';
+  setTimeout(()=> n.style.display = 'none', time);
+}
+
+/* Smooth scroll helper */
+function scrollTo(id){document.getElementById(id).scrollIntoView({behavior:'smooth'})}
+
+/* Theme toggle */
+const body = document.body;
+$('#toggleTheme').addEventListener('click', ()=>{
+  body.classList.toggle('day');
+  localStorage.setItem('theme', body.classList.contains('day') ? 'day' : 'night');
+});
+if(localStorage.getItem('theme')==='day') body.classList.add('day');
+
+/* Notification show on load */
+showNotification('Welcome to VRMMO Hub!');
+
+/* ============================
+   Particles background
+   ============================ */
+const particlesCanvas = $('#particles');
+const pCtx = particlesCanvas.getContext('2d');
+let particleColor = $('#particleColor').value || '#00ffff';
+function resizeParticles(){ particlesCanvas.width = window.innerWidth; particlesCanvas.height = window.innerHeight; initParticles(); }
+window.addEventListener('resize', resizeParticles);
+$('#particleColor').addEventListener('input', (e)=>{ particleColor = e.target.value; showNotification('Particle color updated') });
+
+let particles = [];
+class Particle {
+  constructor(){
+    this.reset();
+  }
+  reset(){
+    this.x = Math.random()*particlesCanvas.width;
+    this.y = Math.random()*particlesCanvas.height;
+    this.vx = (Math.random()-0.5)*0.6;
+    this.vy = (Math.random()-0.5)*0.6;
+    this.r = Math.random()*2 + 0.6;
+    this.alpha = 0.6 + Math.random()*0.4;
+  }
+  update(){
+    this.x += this.vx;
+    this.y += this.vy;
+    if(this.x < 0 || this.x > particlesCanvas.width || this.y < 0 || this.y > particlesCanvas.height) this.reset();
+  }
+  draw(ctx){
+    ctx.fillStyle = particleColor;
+    ctx.globalAlpha = this.alpha;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+}
+function initParticles(){
+  particles = [];
+  const count = Math.max(60, Math.floor(window.innerWidth * 0.12));
+  for(let i=0;i<count;i++) particles.push(new Particle());
+}
+function animateParticles(){
+  pCtx.clearRect(0,0,particlesCanvas.width,particlesCanvas.height);
+  // faint background overlay to create depth with theme-aware color
+  pCtx.fillStyle = body.classList.contains('day') ? 'rgba(240,240,240,0.02)' : 'rgba(0,0,0,0.06)';
+  pCtx.fillRect(0,0,particlesCanvas.width,particlesCanvas.height);
+  // draw & line connections
+  for(let i=0;i<particles.length;i++){
+    particles[i].update();
+    particles[i].draw(pCtx);
+    for(let j=i+1;j<particles.length;j++){
+      const dx = particles[i].x - particles[j].x;
+      const dy = particles[i].y - particles[j].y;
+      const d = Math.sqrt(dx*dx + dy*dy);
+      if(d < 110){
+        pCtx.strokeStyle = particleColor;
+        pCtx.globalAlpha = 0.06;
+        pCtx.lineWidth = 0.6;
+        pCtx.beginPath();
+        pCtx.moveTo(particles[i].x, particles[i].y);
+        pCtx.lineTo(particles[j].x, particles[j].y);
+        pCtx.stroke();
+        pCtx.globalAlpha = 1;
+      }
+    }
+  }
+  requestAnimationFrame(animateParticles);
+}
+resizeParticles();
+animateParticles();
+
+/* Cursor trail */
+document.addEventListener('mousemove', (e)=>{
+  const t = document.createElement('div');
+  t.className = 'cursorTrail';
+  t.style.background = particleColor;
+  t.style.left = (e.clientX - 6) + 'px';
+  t.style.top = (e.clientY - 6) + 'px';
+  t.style.width = '10px';
+  t.style.height = '10px';
+  document.body.appendChild(t);
+  setTimeout(()=> t.remove(), 420);
+});
+
+/* ============================
+   Local storage helpers
+   ============================ */
+function saveLS(key, val){localStorage.setItem(key, JSON.stringify(val))}
+function loadLS(key, fallback){ try { return JSON.parse(localStorage.getItem(key)) || fallback } catch(e){ return fallback } }
+
+/* ============================
+   Chat (local) + UI
+   ============================ */
+const chatBox = $('#chatBox');
+const chatInput = $('#chatInput');
+const chatSend = $('#chatSend');
+
+function renderChat(){
+  const msgs = loadLS('vrmmo_chat', []);
+  chatBox.innerHTML = '';
+  msgs.forEach(m=>{
+    const p = document.createElement('div');
+    p.className = 'chat-line';
+    p.innerHTML = `<b>${escapeHtml(m.name)}:</b> ${escapeHtml(m.msg)}`;
+    chatBox.appendChild(p);
+  });
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+chatSend.addEventListener('click', ()=>{
+  const msg = chatInput.value.trim();
+  if(!msg) return;
+  let name = prompt('Choose a nickname:') || 'Anon';
+  const msgs = loadLS('vrmmo_chat', []);
+  msgs.push({name, msg, t: Date.now()});
+  saveLS('vrmmo_chat', msgs);
+  chatInput.value = '';
+  renderChat();
+});
+renderChat();
+
+/* simple HTML escape */
+function escapeHtml(s){ return String(s).replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])) }
+
+/* ============================
+   Leaderboard (local)
+   ============================ */
+const leaderboardList = $('#leaderboardList');
+function renderLeaderboard(){
+  const board = loadLS('vrmmo_board', []);
+  board.sort((a,b)=>b.score - a.score);
+  leaderboardList.innerHTML = '';
+  board.slice(0,20).forEach((e, i)=>{
+    const li = document.createElement('li');
+    li.innerHTML = `<span>${i+1}. ${escapeHtml(e.name)}</span><span style="font-weight:900">${e.score}</span>`;
+    leaderboardList.appendChild(li);
+  });
+}
+function updateLeaderboard(name, score){
+  const board = loadLS('vrmmo_board', []);
+  board.push({name: name || 'Anon', score: Number(score) || 0, t: Date.now()});
+  saveLS('vrmmo_board', board);
+  renderLeaderboard();
+  flashHighScore();
+}
+function flashHighScore(){
+  leaderboardList.style.transition = 'color .18s';
+  leaderboardList.style.color = '#ffd86b';
+  setTimeout(()=> leaderboardList.style.color = '', 300);
+}
+renderLeaderboard();
+
+/* ============================
+   Guilds (local)
+   ============================ */
+let guilds = loadLS('vrmmo_guilds', {});
+function createGuild(){
+  const name = ($('#guildName').value || '').trim();
+  if(!name) { alert('Enter a guild name'); return; }
+  if(guilds[name]) { alert('Guild exists locally'); return; }
+  const member = prompt('Your player name') || 'Anon';
+  guilds[name] = guilds[name] || [];
+  guilds[name].push(member);
+  saveLS('vrmmo_guilds', guilds);
+  renderGuilds();
+  unlockAchievement('ach-guild');
+}
+function renderGuilds(){
+  const container = $('#guildList');
+  container.innerHTML = '';
+  Object.keys(guilds).forEach(g=>{
+    const div = document.createElement('div');
+    div.style.marginBottom = '8px';
+    div.innerHTML = `<b>${escapeHtml(g)}</b> — Members: <span class="small">${escapeHtml(guilds[g].join(', '))}</span>`;
+    container.appendChild(div);
+  });
+}
+renderGuilds();
+
+/* ============================
+   Achievements
+   ============================ */
+function unlockAchievement(id){
+  const el = document.getElementById(id);
+  if(!el) return;
+  if(!el.classList.contains('unlocked')){
+    el.classList.add('unlocked');
+    const name = el.innerText || 'Achievement';
+    achievementPopup(name);
+  }
+}
+function achievementPopup(text){
+  const pop = document.createElement('div');
+  pop.className = 'notification';
+  pop.innerText = `Achievement: ${text}`;
+  document.body.appendChild(pop);
+  setTimeout(()=> pop.remove(), 2500);
+}
+unlockAchievement('ach-login');
+
+/* ============================
+   Sounds (simple)
+   ============================ */
+const sounds = {
+  click: new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg'),
+  achievement: new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg'),
+  gameStart: new Audio('https://actions.google.com/sounds/v1/cartoon/clang.ogg')
+};
+function playSound(name){ try{ sounds[name] && sounds[name].play().catch(()=>{}); }catch(e){} }
+
+/* Button hover sound */
+document.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('mouseenter', ()=> playSound('click'));
+});
+
+/* ============================
+   Game infrastructure & controller
+   ============================ */
+
+const overlay = $('#gameOverlay');
+const gameCanvas = $('#gameCanvas');
+const gCtx = gameCanvas.getContext('2d');
+const gameTitle = $('#gameTitle');
+const gameScoreEl = $('#gameScore');
+const mobileController = $('#mobileController');
+
+let gameLoop = null;
+let gameState = null; // will hold per-game state
+let activeGame = 0;
+let mobileControlsEnabled = false;
+
+/* Helper: show overlay and set up controller visibility */
+function openOverlay(name){
+  overlay.style.display = 'flex';
+  overlay.setAttribute('aria-hidden','false');
+  gameTitle.innerText = name;
+  gameScoreEl.innerText = '0';
+  // show controller if small screen
+  if(window.innerWidth <= 900){
+    mobileController.style.display = 'flex';
+    mobileControlsEnabled = true;
+  } else {
+    mobileController.style.display = 'none';
+    mobileControlsEnabled = false;
+  }
+  // Prevent page scrolling while playing
+  document.body.style.overflow = 'hidden';
+}
+function closeOverlay(){
+  overlay.style.display = 'none';
+  overlay.setAttribute('aria-hidden','true');
+  document.body.style.overflow = '';
+  // cleanup
+  clearInterval(gameLoop);
+  gameLoop = null;
+  gameState = null;
+  activeGame = 0;
+  // remove any binded handlers
+  document.onkeydown = null;
+  document.onkeyup = null;
+  gameCanvas.ontouchstart = null;
+  gameCanvas.ontouchmove = null;
+  gameCanvas.ontouchend = null;
+  mobileController.style.display = 'none';
+  mobileControlsEnabled = false;
+}
+
+/* close button */
+$('#closeGame').addEventListener('click', ()=> {
+  closeOverlay();
+});
+
+/* Mobile controller buttons (touch-friendly) */
+let dpadState = {up:false,down:false,left:false,right:false,action:false};
+function bindControllerButtons(){
+  const m = mobileController;
+  const up = $('#upBtn'), down = $('#downBtn'), left = $('#leftBtn'), right = $('#rightBtn'), action = $('#actionBtn');
+  // helper: press / release
+  function bindPress(el, key){
+    if(!el) return;
+    el.addEventListener('touchstart', (e)=>{ e.preventDefault(); dpadState[key] = true }, {passive:false});
+    el.addEventListener('touchend',   (e)=>{ e.preventDefault(); dpadState[key] = false }, {passive:false});
+    // also mouse events so buttons work with desktop clicks
+    el.addEventListener('mousedown', ()=> dpadState[key] = true);
+    document.addEventListener('mouseup', ()=> dpadState[key] = false);
+  }
+  bindPress(up, 'up');
+  bindPress(down, 'down');
+  bindPress(left, 'left');
+  bindPress(right, 'right');
+  bindPress(action, 'action');
+}
+bindControllerButtons();
+
+/* Small utility to scale canvas to its display size cleanly */
+function fitCanvasToDisplay(canvas){
+  const ratio = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth;
+  const h = canvas.clientHeight;
+  if(canvas.width !== Math.floor(w * ratio) || canvas.height !== Math.floor(h * ratio)){
+    canvas.width = Math.floor(w * ratio);
+    canvas.height = Math.floor(h * ratio);
+    gCtx.setTransform(ratio,0,0,ratio,0,0); // scale drawing operations
+  }
+}
+
+/* Game controller: start & dispatch */
+function startGame(id){
+  activeGame = id;
+  gameScoreEl.innerText = '0';
+  if(id === 1) { openOverlay('Asteroid Shooter'); asteroidShooterStart(); }
+  else if(id === 2) { openOverlay('Memory Challenge'); memoryChallengeStart(); }
+  else if(id === 3) { openOverlay('Snake VR'); snakeStart(); }
+  else if(id === 4) { openOverlay('Reaction Test'); reactionStart(); }
+  else if(id === 5) { openOverlay('Playable Room'); playableRoomStart(); }
+  playSound('gameStart');
+}
+
+/* ============================
+   Game 1: Asteroid Shooter
+   Controls:
+     - Keyboard: ArrowLeft / ArrowRight; Space to shoot
+     - Mobile: dpad left/right + action (A)
+   ============================ */
+function asteroidShooterStart(){
+  fitCanvasToDisplay(gameCanvas);
+  // state
+  gameState = {
+    ship: {x: gameCanvas.clientWidth / 2 - 15, y: gameCanvas.clientHeight - 40, w: 30, h: 18},
+    bullets: [],
+    asteroids: [],
+    spawnTimer: 0,
+    score: 0,
+    input: {left:false,right:false,shoot:false}
+  };
+
+  // keyboard bindings
+  document.onkeydown = (e)=>{
+    if(e.key === 'ArrowLeft') gameState.input.left = true;
+    if(e.key === 'ArrowRight') gameState.input.right = true;
+    if(e.key === ' ' || e.key === 'Spacebar') gameState.input.shoot = true;
+  };
+  document.onkeyup = (e)=>{
+    if(e.key === 'ArrowLeft') gameState.input.left = false;
+    if(e.key === 'ArrowRight') gameState.input.right = false;
+    if(e.key === ' ' || e.key === 'Spacebar') gameState.input.shoot = false;
+  };
+
+  // touch: use dpadState
+  gameCanvas.ontouchstart = (e)=>{ e.preventDefault(); } // prevent scroll while playing
+
+  // main loop
+  gameLoop = setInterval(()=>{
+    fitCanvasToDisplay(gameCanvas);
+    const W = gameCanvas.clientWidth, H = gameCanvas.clientHeight;
+    const st = gameState;
+
+    // input merged with mobile controller
+    if(mobileControlsEnabled){
+      st.input.left = dpadState.left;
+      st.input.right = dpadState.right;
+      st.input.shoot = dpadState.action;
+    }
+
+    // move ship
+    if(st.input.left) st.ship.x -= 6;
+    if(st.input.right) st.ship.x += 6;
+    st.ship.x = Math.max(6, Math.min(W - st.ship.w - 6, st.ship.x));
+
+    // shooting
+    if(st.input.shoot && (st.shootCooldown || 0) <= 0){
+      st.bullets.push({x: st.ship.x + st.ship.w/2 - 3, y: st.ship.y - 8, w:6, h:10});
+      st.shootCooldown = 12; // frames
+    }
+    if(st.shootCooldown > 0) st.shootCooldown--;
+
+    // spawn asteroids
+    st.spawnTimer++;
+    if(st.spawnTimer > 30){
+      st.spawnTimer = 0;
+      const size = 16 + Math.random()*24;
+      st.asteroids.push({x: Math.random()*(W-size-20)+10, y:-size, size, vy: 1.5 + Math.random()*2});
+    }
+
+    // update bullets
+    st.bullets.forEach((b,i)=> {
+      b.y -= 10;
+      if(b.y + b.h < 0) st.bullets.splice(i,1);
+    });
+
+    // update asteroids & collisions
+    st.asteroids.forEach((a,i)=>{
+      a.y += a.vy;
+      // check collision with bullets
+      st.bullets.forEach((b,j)=>{
+        if(b.x < a.x + a.size && b.x + b.w > a.x && b.y < a.y + a.size && b.y + b.h > a.y){
+          // destroy
+          st.bullets.splice(j,1);
+          st.asteroids.splice(i,1);
+          st.score += 10;
+          gameScoreEl.innerText = st.score;
+        }
+      });
+      // check collision with ship
+      if(st.ship.x < a.x + a.size && st.ship.x + st.ship.w > a.x && st.ship.y < a.y + a.size && st.ship.y + st.ship.h > a.y){
+        // game over
+        alert('Ship hit! Game over.');
+        const name = prompt('Enter name for leaderboard:') || 'Anon';
+        updateLeaderboard(name, st.score);
+        closeOverlay();
+      }
+      if(a.y > H + 40) st.asteroids.splice(i,1);
+    });
+
+    // draw
+    gCtx.clearRect(0,0,W,H);
+    // ship
+    gCtx.fillStyle = '#0ff';
+    gCtx.fillRect(st.ship.x, st.ship.y, st.ship.w, st.ship.h);
+    // bullets
+    gCtx.fillStyle = '#ffd700';
+    st.bullets.forEach(b=> gCtx.fillRect(b.x, b.y, b.w, b.h));
+    // asteroids
+    gCtx.fillStyle = '#ff4b4b';
+    st.asteroids.forEach(a=>{
+      gCtx.beginPath();
+      gCtx.arc(a.x + a.size/2, a.y + a.size/2, a.size/2, 0, Math.PI*2);
+      gCtx.fill();
+    });
+
+  }, 30);
+}
+
+/* ============================
+   Game 2: Memory Challenge
+   Controls:
+     - Desktop: 1/2/3/4 keys
+     - Mobile: tap quadrants of canvas
+   ============================ */
+function memoryChallengeStart(){
+  fitCanvasToDisplay(gameCanvas);
+  gameState = { sequence: [], player: [], colors: ['#ffcc00','#00ff99','#ff99ff','#00e0ff'], showing:false, level:1, score:0 };
+  const st = gameState;
+
+  function newRound(){
+    st.sequence.push(st.colors[Math.floor(Math.random()*st.colors.length)]);
+    st.player = [];
+    showSequence(0);
+  }
+
+  function showSequence(i){
+    st.showing = true;
+    if(i >= st.sequence.length){
+      st.showing = false;
+      gCtx.clearRect(0,0,gameCanvas.clientWidth,gameCanvas.clientHeight);
+      return;
+    }
+    // draw color
+    gCtx.fillStyle = st.sequence[i];
+    gCtx.fillRect(0,0,gameCanvas.clientWidth, gameCanvas.clientHeight);
+    setTimeout(()=> {
+      gCtx.clearRect(0,0,gameCanvas.clientWidth, gameCanvas.clientHeight);
+      setTimeout(()=> showSequence(i+1), 300);
+    }, 600);
+  }
+
+  function checkInput(color){
+    if(st.showing) return;
+    const idx = st.player.length;
+    if(color !== st.sequence[idx]) {
+      alert('Wrong sequence! Game over.');
+      const name = prompt('Enter name for leaderboard:') || 'Anon';
+      updateLeaderboard(name, st.score);
+      closeOverlay();
+      return;
+    }
+    st.player.push(color);
+    if(st.player.length === st.sequence.length){
+      st.level++;
+      st.score += 10 * st.level;
+      gameScoreEl.innerText = st.score;
+      setTimeout(newRound, 600);
+    }
+  }
+
+  // keyboard
+  document.onkeydown = (e)=>{
+    if(st.showing) return;
+    const map = {'1':0,'2':1,'3':2,'4':3};
+    if(map[e.key] !== undefined) checkInput(st.colors[map[e.key]]);
+  };
+
+  // touch: split canvas into 4 vertical segments
+  gameCanvas.ontouchstart = (e)=>{
+    if(st.showing) return;
+    const x = e.touches[0].clientX - gameCanvas.getBoundingClientRect().left;
+    const w = gameCanvas.clientWidth;
+    const seg = Math.floor((x / w) * 4);
+    checkInput(st.colors[seg]);
+  };
+
+  newRound();
+}
+
+/* ============================
+   Game 3: Snake
+   Controls:
+     - Keyboard: arrows
+     - Mobile: swipe or dpad
+   ============================ */
+function snakeStart(){
+  fitCanvasToDisplay(gameCanvas);
+  const box = 20;
+  let W = Math.floor(gameCanvas.clientWidth / box) * box;
+  let H = Math.floor(gameCanvas.clientHeight / box) * box;
+  gameState = { snake: [{x: box*5, y: box*5}], dir:'RIGHT', food: null, score:0 };
+  let st = gameState;
+
+  function placeFood(){
+    st.food = { x: Math.floor(Math.random() * (W/box)) * box, y: Math.floor(Math.random() * (H/box)) * box };
+  }
+  placeFood();
+
+  document.onkeydown = (e)=>{
+    if(e.key === 'ArrowLeft' && st.dir !== 'RIGHT') st.dir = 'LEFT';
+    if(e.key === 'ArrowRight' && st.dir !== 'LEFT') st.dir = 'RIGHT';
+    if(e.key === 'ArrowUp' && st.dir !== 'DOWN') st.dir = 'UP';
+    if(e.key === 'ArrowDown' && st.dir !== 'UP') st.dir = 'DOWN';
+  };
+
+  // swipe support
+  let sX = 0, sY = 0;
+  gameCanvas.ontouchstart = (e)=>{ sX = e.touches[0].clientX; sY = e.touches[0].clientY; };
+  gameCanvas.ontouchend = (e)=> {
+    const dx = e.changedTouches[0].clientX - sX;
+    const dy = e.changedTouches[0].clientY - sY;
+    if(Math.abs(dx) > Math.abs(dy)){
+      if(dx > 0 && st.dir !== 'LEFT') st.dir = 'RIGHT';
+      else if(dx < 0 && st.dir !== 'RIGHT') st.dir = 'LEFT';
+    } else {
+      if(dy > 0 && st.dir !== 'UP') st.dir = 'DOWN';
+      else if(dy < 0 && st.dir !== 'DOWN') st.dir = 'UP';
+    }
+  };
+
+  gameLoop = setInterval(()=>{
+    fitCanvasToDisplay(gameCanvas);
+    W = Math.floor(gameCanvas.clientWidth / box) * box;
+    H = Math.floor(gameCanvas.clientHeight / box) * box;
+
+    // move head
+    const head = {...st.snake[0]};
+    if(st.dir === 'RIGHT') head.x += box;
+    if(st.dir === 'LEFT')  head.x -= box;
+    if(st.dir === 'UP')    head.y -= box;
+    if(st.dir === 'DOWN')  head.y += box;
+
+    // wall collisions -> wrap around
+    if(head.x >= W) head.x = 0;
+    if(head.x < 0) head.x = W - box;
+    if(head.y >= H) head.y = 0;
+    if(head.y < 0) head.y = H - box;
+
+    // check self collision
+    if(st.snake.some((seg, idx)=> idx>0 && seg.x === head.x && seg.y === head.y)){
+      alert('You crashed! Game over.');
+      const name = prompt('Enter name for leaderboard:') || 'Anon';
+      updateLeaderboard(name, st.score);
+      closeOverlay();
+      return;
+    }
+
+    st.snake.unshift(head);
+
+    // eat food?
+    if(head.x === st.food.x && head.y === st.food.y){
+      st.score += 5;
+      gameScoreEl.innerText = st.score;
+      placeFood();
+    } else {
+      st.snake.pop();
+    }
+
+    // render
+    gCtx.clearRect(0,0,gameCanvas.clientWidth, gameCanvas.clientHeight);
+    // food
+    gCtx.fillStyle = '#ff4b4b';
+    gCtx.fillRect(st.food.x, st.food.y, box, box);
+    // snake
+    gCtx.fillStyle = '#0ff';
+    st.snake.forEach(s=> gCtx.fillRect(s.x, s.y, box, box));
+  }, 100);
+}
+
+/* ============================
+   Game 4: Reaction Test
+   Controls:
+     - keyboard: space
+     - mobile: tap
+   ============================ */
+function reactionStart(){
+  fitCanvasToDisplay(gameCanvas);
+  gameState = { waiting:true, started:false, startTime:0, score:0 };
+  const st = gameState;
+
+  gCtx.clearRect(0,0,gameCanvas.clientWidth, gameCanvas.clientHeight);
+  gCtx.fillStyle = '#0ff';
+  gCtx.fillRect(100,100,gameCanvas.clientWidth - 200, gameCanvas.clientHeight - 200);
+  gCtx.fillStyle = '#07121a';
+  gCtx.font = '18px monospace';
+  gCtx.fillText('Wait for it...', 120, 140);
+
+  const delay = 1000 + Math.random()*2500;
+  setTimeout(()=>{
+    st.started = true;
+    st.startTime = Date.now();
+    gCtx.clearRect(0,0,gameCanvas.clientWidth, gameCanvas.clientHeight);
+    gCtx.fillStyle = '#ff4b4b';
+    gCtx.fillRect(100,100,gameCanvas.clientWidth - 200, gameCanvas.clientHeight - 200);
+    gCtx.fillStyle = '#07121a';
+    gCtx.fillText('TAP / SPACE!', 120, 140);
+  }, delay);
+
+  function success(){
+    if(!st.started) return;
+    const reaction = Date.now() - st.startTime;
+    alert('Reaction time: ' + reaction + ' ms');
+    const name = prompt('Enter name for leaderboard:') || 'Anon';
+    updateLeaderboard(name, Math.max(0, 1000 - reaction));
+    closeOverlay();
+  }
+
+  document.onkeydown = (e)=>{ if(e.key === ' ' || e.key === 'Spacebar') success(); };
+  gameCanvas.ontouchstart = (e)=>{ success(); };
+}
+
+/* ============================
+   Game 5: Playable Room (rotating square / collect dots)
+   Controls:
+     - keyboard: arrows
+     - mobile: dpad or swipe
+   ============================ */
+function playableRoomStart(){
+  fitCanvasToDisplay(gameCanvas);
+  const W = gameCanvas.clientWidth, H = gameCanvas.clientHeight;
+  gameState = {
+    player: {x: W/2, y: H/2, size: 28, vx:0, vy:0},
+    dots: [],
+    score:0,
+    rot: 0,
+    input: {left:false,right:false,up:false,down:false}
+  };
+  const st = gameState;
+
+  // spawn some dots
+  function spawnDot(){
+    st.dots.push({ x: Math.random()*(W-40)+20, y: Math.random()*(H-40)+20, r:6 });
+  }
+  for(let i=0;i<6;i++) spawnDot();
+
+  // keyboard
+  document.onkeydown = (e)=>{
+    if(e.key === 'ArrowLeft') st.input.left = true;
+    if(e.key === 'ArrowRight') st.input.right = true;
+    if(e.key === 'ArrowUp') st.input.up = true;
+    if(e.key === 'ArrowDown') st.input.down = true;
+  };
+  document.onkeyup = (e)=>{
+    if(e.key === 'ArrowLeft') st.input.left = false;
+    if(e.key === 'ArrowRight') st.input.right = false;
+    if(e.key === 'ArrowUp') st.input.up = false;
+    if(e.key === 'ArrowDown') st.input.down = false;
+  };
+
+  // touch swipe for mobile
+  let sx=0, sy=0;
+  gameCanvas.ontouchstart = (e)=>{ sx = e.touches[0].clientX; sy = e.touches[0].clientY; };
+  gameCanvas.ontouchend = (e)=>{
+    const dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+    const absX = Math.abs(dx), absY = Math.abs(dy);
+    if(absX > absY){
+      if(dx > 0) { st.input.right = true; setTimeout(()=>st.input.right=false,120); }
+      else { st.input.left = true; setTimeout(()=>st.input.left=false,120); }
+    } else {
+      if(dy > 0) { st.input.down = true; setTimeout(()=>st.input.down=false,120); }
+      else { st.input.up = true; setTimeout(()=>st.input.up=false,120); }
+    }
+  };
+
+  // mobile controller integration
+  // read dpadState
+  gameLoop = setInterval(()=>{
+    fitCanvasToDisplay(gameCanvas);
+    const Wc = gameCanvas.clientWidth, Hc = gameCanvas.clientHeight;
+
+    // movement
+    const speed = 3.4;
+    if(mobileControlsEnabled){
+      if(dpadState.left) st.player.x -= speed;
+      if(dpadState.right) st.player.x += speed;
+      if(dpadState.up) st.player.y -= speed;
+      if(dpadState.down) st.player.y += speed;
+      if(dpadState.action) { st.rot += 6; } // action rotates
+    } else {
+      if(st.input.left) st.player.x -= speed;
+      if(st.input.right) st.player.x += speed;
+      if(st.input.up) st.player.y -= speed;
+      if(st.input.down) st.player.y += speed;
+    }
+
+    // bounds clamp
+    st.player.x = Math.max(12, Math.min(Wc - 12, st.player.x));
+    st.player.y = Math.max(12, Math.min(Hc - 12, st.player.y));
+
+    // rotation slowly
+    st.rot += 0.8;
+
+    // collect dots
+    for(let i = st.dots.length-1; i>=0; i--){
+      const d = st.dots[i];
+      const dx = d.x - st.player.x;
+      const dy = d.y - st.player.y;
+      if(Math.sqrt(dx*dx+dy*dy) < (d.r + st.player.size/2)){
+        st.dots.splice(i,1);
+        st.score += 5;
+        gameScoreEl.innerText = st.score;
+        // spawn another
+        spawnDot();
+      }
+    }
+
+    // draw
+    gCtx.clearRect(0,0,Wc,Hc);
+    // dots
+    st.dots.forEach(d=>{
+      gCtx.beginPath();
+      gCtx.fillStyle = '#ffcc00';
+      gCtx.arc(d.x, d.y, d.r, 0, Math.PI*2);
+      gCtx.fill();
+    });
+    // player square rotated
+    gCtx.save();
+    gCtx.translate(st.player.x, st.player.y);
+    gCtx.rotate(st.rot * Math.PI / 180);
+    gCtx.fillStyle = '#0ff';
+    const s = st.player.size;
+    gCtx.fillRect(-s/2, -s/2, s, s);
+    gCtx.restore();
+  }, 30);
+}
+
+/* ============================
+   Wire mobile dpad state to keyboard for desktop convenience
+   ============================ */
+setInterval(()=> {
+  // allow some keyboard emulation for dpadState (useful for testing)
+  // not required; intentionally lightweight
+}, 2500);
+
+/* ============================
+   Small UX helpers & housekeeping
+   ============================ */
+window.addEventListener('resize', ()=> {
+  if(activeGame !== 0){
+    fitCanvasToDisplay(gameCanvas);
+  }
+});
+
+/* small wrapper to allow user to exit overlay via ESC */
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && overlay.style.display === 'flex'){ closeOverlay(); }
+});
+
+/* ============================
+   Small fixes: ensure mobile controller shows/hides correctly
+   ============================ */
+function checkMobileControllerVisibility(){
+  if(window.innerWidth <= 900){
+    mobileController.style.display = 'flex';
+    mobileControlsEnabled = true;
+  } else {
+    mobileController.style.display = 'none';
+    mobileControlsEnabled = false;
+  }
+}
+checkMobileControllerVisibility();
+window.addEventListener('resize', checkMobileControllerVisibility);
+
+/* ============================
+   Provide external hooks for updateLeaderboard etc (already implemented above)
+   ============================ */
+
+/* Example: unlock top-achievement when board updated with a big score */
+(function attachBoardWatcher(){
+  const orig = updateLeaderboard;
+  updateLeaderboard = function(name,score){
+    orig(name,score);
+    // if big score >= 100 then unlock top
+    if(Number(score) >= 100) unlockAchievement('ach-top');
+  }
+})();
+
+/* END of script */
+</script>
+</body>
+</html>
